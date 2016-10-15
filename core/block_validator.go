@@ -27,6 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/pow"
+	"github.com/ethereum/go-ethereum/core/vm/gas"
 	"gopkg.in/fatih/set.v0"
 )
 
@@ -233,6 +234,11 @@ func ValidateHeader(config *ChainConfig, pow pow.PoW, header *types.Header, pare
 	b = b.Div(b, params.GasLimitBoundDivisor)
 	if !(a.Cmp(b) < 0) || (header.GasLimit.Cmp(params.MinGasLimit) == -1) {
 		return fmt.Errorf("GasLimit check failed for header %v (%v > %v)", header.GasLimit, a, b)
+	}
+	
+	gasPrice := gas.checkGasPricing(header.gasOpcodePrice)
+	if (gasPrice != nil) {
+		return gasPrice
 	}
 
 	num := new(big.Int).Set(parent.Number)
